@@ -1,7 +1,7 @@
-P=program_name
+P=erf
 OBJECTS=
-CFLAGS = -g -Wall -O3
+CFLAGS = -g -Wall -O3 -std=gnu11
 LDLIBS=
-CC=c11
+CC=gcc
 
 $(P): $(OBJECTS)
