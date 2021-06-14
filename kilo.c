@@ -1,9 +1,9 @@
 /*** includes ***/
-
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -12,7 +12,13 @@
 
 /*** data ***/
 
-struct termios orig_termios;
+struct editor_config {
+    struct termios orig_termios;
+    int screenrows;
+    int screencols;
+};
+
+struct editor_config E;
 
 /*** terminal **/
 void die(const char *s) {
@@ -21,14 +27,14 @@ void die(const char *s) {
 }
 
 void disable_raw_mode() {
-    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios) == -1)
+    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &E.orig_termios) == -1)
         die("tcsetattr disable_raw_mode");
 }
 
 void enable_raw_mode() {
-    if (tcgetattr(STDIN_FILENO, &orig_termios)) die("tcgetattr enable_raw_mode");
+    if (tcgetattr(STDIN_FILENO, &E.orig_termios)) die("tcgetattr enable_raw_mode");
     atexit(disable_raw_mode);
-    struct termios raw = orig_termios;
+    struct termios raw = E.orig_termios;
     raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
     raw.c_oflag &= ~(OPOST);
     raw.c_cflag |= (CS8);
@@ -60,6 +66,12 @@ void editor_position_key() {
     write(STDIN_FILENO, "\x1b[H", 3);
 }
 
+void editor_draw_rows() {
+    for (int i = 0; i <= E.screenrows; i++) {
+        write(STDIN_FILENO, "~\r\n", 3);
+    }
+}
+
 void editor_refresh_screen() {
     write(STDIN_FILENO, "\x1b[2J", 4);
     editor_position_key();
@@ -67,16 +79,26 @@ void editor_refresh_screen() {
     editor_position_key();
 }
 
-void editor_draw_rows() {
-    for (int i = 0; i < 25; i++) {
-        write(STDIN_FILENO, "~\r\n", 3);
+int get_window_size(int *rows, int *cols) {
+    struct winsize ws;
+    if (ioctl(STDIN_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
+        return -1;
+    } else {
+        *cols = ws.ws_col;
+        *rows = ws.ws_row;
+        return 0;
     }
 }
 
 /*** init ***/
 
+void init_editor() {
+  if (get_window_size(&E.screenrows, &E.screencols) == -1) die("getWindowSize");
+}
+
 int main() {
     enable_raw_mode();
+    init_editor();
 
     while (1) {
         editor_refresh_screen();
