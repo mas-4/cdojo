@@ -56,9 +56,21 @@ void editor_process_keypress() {
     }
 }
 
+void editor_position_key() {
+    write(STDIN_FILENO, "\x1b[H", 3);
+}
+
 void editor_refresh_screen() {
     write(STDIN_FILENO, "\x1b[2J", 4);
-    write(STDIN_FILENO, "\x1b[H", 3);
+    editor_position_key();
+    editor_draw_rows();
+    editor_position_key();
+}
+
+void editor_draw_rows() {
+    for (int i = 0; i < 25; i++) {
+        write(STDIN_FILENO, "~\r\n", 3);
+    }
 }
 
 /*** init ***/
