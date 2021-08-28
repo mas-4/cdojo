@@ -1,6 +1,6 @@
 OBJECTS=
-CFLAGS = -g -Wall -O3 -std=gnu11
+CFLAGS = -g -Wall -O3 -std=c17
 LDLIBS=-lgsl -lgslcblas -lm
-CC=gcc
+CC=clang
 
 $(P): $(OBJECTS)
