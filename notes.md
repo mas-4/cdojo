@@ -24,8 +24,8 @@ void move(point *p) {
     p->x++; // equivalent (*p).x++;
     p->y++; // equivalent (*p).y++;
 }
-
-* operator creates is reference
-& operator dereferences
-But * as a declaration is a pointer declaration (which is produced by &).
 ```
+
+- * operator creates is reference
+- & operator dereferences
+- But * as a declaration is a pointer declaration (which is produced by &).
